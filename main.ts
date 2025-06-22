@@ -47,56 +47,71 @@ bluetooth.onBluetoothDisconnected(function () {
     BT = 0
     pins.setAudioPinEnabled(false)
 })
+function Face () {
+    while (CurFace == "Time") {
+        basic.showString(TimeString)
+    }
+    while (CurFace == "Comp") {
+        basic.showArrow(input.compassHeading())
+    }
+}
 function OSW () {
     music.play(music.stringPlayable("C D G E E E E E ", 164), music.PlaybackMode.UntilDone)
     basic.showString("Started")
     Power_Saving = 0
     while (StartOS == 1) {
-        if (input.buttonIsPressed(Button.A)) {
-            FaceChange()
-        }
-        if (input.buttonIsPressed(Button.B)) {
-            basic.showString("Power Saving:")
-            if (Power_Saving == 1) {
-                Power_Saving = 0
-                basic.showString("Off")
-                PowerSave()
+        while (selected1 == 0) {
+            Face()
+            if (input.buttonIsPressed(Button.A)) {
+                selected1 = 1
+                FaceChange()
             }
-            if (Power_Saving == 0) {
-                Power_Saving = 1
-                basic.showString("On")
-                PowerSave()
+            if (input.buttonIsPressed(Button.B)) {
+                selected1 = 1
+                basic.showString("Power Saving:")
+                if (Power_Saving == 1) {
+                    Power_Saving = 0
+                    basic.showString("Off")
+                    PowerSave()
+                }
+                if (Power_Saving == 0) {
+                    Power_Saving = 1
+                    basic.showString("On")
+                    PowerSave()
+                }
             }
-        }
-        if (input.logoIsPressed()) {
-            Selected = 0
-            basic.showString("A for Power off B for BT connect Logo for WSPS (watch sound player service)")
-            while (Selected == 0) {
-                if (input.buttonIsPressed(Button.A)) {
-                    power.lowPowerEnable(LowPowerEnable.Allow)
-                    power.lowPowerRequest(LowPowerMode.Wait)
-                    bluetooth.setTransmitPower(0)
-                    Selected = 1
+            if (input.logoIsPressed()) {
+                selected1 = 1
+                Selected = 0
+                basic.showString("A for Power off B for BT connect Logo for WSPS (watch sound player service)")
+                while (Selected == 0) {
+                    if (input.buttonIsPressed(Button.A)) {
+                        power.lowPowerEnable(LowPowerEnable.Allow)
+                        power.lowPowerRequest(LowPowerMode.Wait)
+                        bluetooth.setTransmitPower(0)
+                        Selected = 1
+                    }
+                    if (input.buttonIsPressed(Button.B)) {
+                        power.lowPowerEnable(LowPowerEnable.Prevent)
+                        bluetooth.startIOPinService()
+                        bluetooth.setTransmitPower(7)
+                        BT = 1
+                        Selected = 1
+                    }
+                    if (input.logoIsPressed()) {
+                        WSPS()
+                    }
                 }
-                if (input.buttonIsPressed(Button.B)) {
-                    power.lowPowerEnable(LowPowerEnable.Prevent)
-                    bluetooth.startIOPinService()
-                    bluetooth.setTransmitPower(7)
-                    BT = 1
-                    Selected = 1
-                }
-                if (input.logoIsPressed()) {
-                    WSPS()
-                }
+                selected1 = 0
             }
         }
     }
 }
 function Setup () {
     wID = "" + control.deviceName() + control.deviceSerialNumber()
+    basic.showString("A+B to skip start")
     basic.pause(1000)
-    basic.showString("Hold logo to skip startup")
-    if (!(input.logoIsPressed())) {
+    if (!(input.buttonIsPressed(Button.AB))) {
         basic.showString("Face North")
         input.calibrateCompass()
         basic.showString("Calibrated")
@@ -122,6 +137,7 @@ function PowerSave () {
         power.fullPowerOn(FullPowerSource.A)
         power.fullPowerOn(FullPowerSource.B)
     }
+    selected1 = 0
 }
 function FaceChange () {
     CurFace = "A for Time B for Compass"
@@ -131,6 +147,7 @@ function FaceChange () {
     if (input.buttonIsPressed(Button.B)) {
         CurFace = "Comp"
     }
+    selected1 = 0
 }
 function WSPS () {
     record.setSampleRate(11000)
@@ -156,26 +173,19 @@ function WSPS () {
         Selected = 1
     }
 }
-let CurFace = ""
-let TimeString = ""
 let wID = ""
 let Selected = 0
+let selected1 = 0
 let StartOS = 0
 let Power_Saving = 0
+let TimeString = ""
+let CurFace = ""
 let BT = 0
 let Second = 0
 let Start_Clock = 0
 let Minute = 0
 let Hour = 0
 Setup()
-control.inBackground(function () {
-    while (CurFace == "Time") {
-        basic.showString(TimeString)
-    }
-    while (CurFace == "Comp") {
-        basic.showArrow(input.compassHeading())
-    }
-})
 control.inBackground(function () {
     while (!(Start_Clock == 0)) {
         basic.pause(1000)
